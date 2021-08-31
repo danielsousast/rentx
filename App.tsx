@@ -1,4 +1,6 @@
 import React from "react";
+import AppLoading from "expo-app-loading";
+import { ThemeProvider } from "styled-components/native";
 import {
   useFonts,
   Inter_400Regular,
@@ -9,12 +11,10 @@ import {
   Archivo_500Medium,
   Archivo_600SemiBold,
 } from "@expo-google-fonts/archivo";
-import AppLoading from "expo-app-loading";
-import { ThemeProvider } from "styled-components/native";
-
-import Home from "./src/screens/Home";
 
 import theme from "./src/global/theme";
+
+import AppRoutes from "./src/routes";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -31,7 +31,7 @@ export default function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Home />
+      <AppRoutes />
     </ThemeProvider>
   );
 }

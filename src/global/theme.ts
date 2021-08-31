@@ -11,6 +11,7 @@ export default {
     main_light: "#fdedef",
     success: "#03b252",
     shape_dark: "#29292e",
+    shape: "#fff",
   },
   fonts: {
     primary_400: "Inter_400Regular",
