@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { StatusBar } from "react-native";
+import { StatusBar, ActivityIndicator } from "react-native";
 import { RFValue } from "react-native-responsive-fontsize";
+
+import api from "../../services/api";
 
 import Logo from "../../assets/logo.svg";
 import Car from "../../components/Car";
@@ -13,23 +15,41 @@ import {
   HomeHeaderContent,
   TotalCars,
 } from "./styles";
+import { CarDTO } from "../../dtos/CardDTO";
+import Loading from "../../components/Loading";
+import FloatButton from "../../components/FloatButton";
 
 export default function Home() {
-  const car = {
-    key: "1",
-    brand: "AUDI",
-    name: "RD 5 Coupe",
-    rent: {
-      period: "ao dia",
-      price: 120,
-    },
-    thumbnail: "https://pngimg.com/uploads/audi/audi_PNG99491.png",
-  };
+  const [isLoading, setIsLoading] = useState(true);
+  const [cars, setCars] = useState<CarDTO[]>([] as CarDTO[]);
+
+  async function loadCars() {
+    try {
+      const response = await api.get("/cars");
+
+      if (response) {
+        setCars(response.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
+    loadCars();
+  }, []);
 
   const { navigate } = useNavigation();
 
-  function handleCarPress() {
-    navigate("car-details");
+  function handleCarPress(car: CarDTO) {
+    navigate("car-details", {
+      car,
+    });
+  }
+
+  function handleOpenMyCars() {
+    navigate("my-cars");
   }
 
   return (
@@ -42,16 +62,21 @@ export default function Home() {
       <HomeHeader>
         <HomeHeaderContent>
           <Logo width={RFValue(108)} height={RFValue(12)} />
-          <TotalCars>Total de 12 carros</TotalCars>
+          <TotalCars>Total de {cars.length} carros</TotalCars>
         </HomeHeaderContent>
       </HomeHeader>
-      <CarList
-        data={[1, 2, 3, 4, 5, 6, 7]}
-        renderItem={({ item }) => (
-          <Car car={car} onPress={() => handleCarPress(item)} />
-        )}
-        keyExtractor={(item) => String(item)}
-      />
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <CarList
+          data={cars}
+          renderItem={({ item }) => (
+            <Car car={item} onPress={() => handleCarPress(item)} />
+          )}
+          keyExtractor={(item) => String(item.id)}
+        />
+      )}
+      <FloatButton onPress={handleOpenMyCars} />
     </HomeContainer>
   );
 }
