@@ -9,8 +9,4 @@ export const Container = styled(RectButton)`
   justify-content: center;
   align-items: center;
   border-radius: 30px;
-
-  position: absolute;
-  bottom: ${getStatusBarHeight() + 24}px;
-  right: 24px;
 `;

@@ -1,4 +1,6 @@
-import React from "react";
+import { useState } from "react";
+import React, { useRef } from "react";
+import { FlatList, ViewToken } from "react-native";
 import {
   Container,
   ImageIndexContainer,
@@ -8,22 +10,43 @@ import {
 } from "./styles";
 
 interface ComponentProps {
-  iamgesUrl: string[];
+  imagesUrl: string[];
 }
 
-export default function ImageSlider({ iamgesUrl }: ComponentProps) {
+interface ChangeImageProps {
+  viewableItems: ViewToken[];
+  changed: ViewToken[];
+}
+
+export default function ImageSlider({ imagesUrl }: ComponentProps) {
+  const [imageIndex, setImageIndex] = useState(0);
+
+  const indexChange = useRef((info: ChangeImageProps) => {
+    const index = info.viewableItems[0].index!;
+
+    setImageIndex(index);
+  });
+
   return (
     <Container>
       <ImageIndexContainer>
-        <ImageIndex active={true} />
-        <ImageIndex active={false} />
-        <ImageIndex active={false} />
-        <ImageIndex active={false} />
+        {imagesUrl.map((_, index) => (
+          <ImageIndex key={index} active={index === imageIndex} />
+        ))}
       </ImageIndexContainer>
 
-      <CarImageWrapper>
-        <CarImage resizeMode="contain" source={{ uri: iamgesUrl[0] }} />
-      </CarImageWrapper>
+      <FlatList
+        horizontal
+        data={imagesUrl}
+        keyExtractor={(item) => item}
+        renderItem={({ item }) => (
+          <CarImageWrapper>
+            <CarImage resizeMode="contain" source={{ uri: item }} />
+          </CarImageWrapper>
+        )}
+        showsHorizontalScrollIndicator={false}
+        onViewableItemsChanged={indexChange.current}
+      />
     </Container>
   );
 }

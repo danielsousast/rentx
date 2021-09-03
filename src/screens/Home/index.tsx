@@ -1,12 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { StatusBar, ActivityIndicator } from "react-native";
+import { StatusBar, StyleSheet, BackHandler } from "react-native";
 import { RFValue } from "react-native-responsive-fontsize";
+import { PanGestureHandler } from "react-native-gesture-handler";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedGestureHandler,
+  withSpring,
+} from "react-native-reanimated";
 
 import api from "../../services/api";
+import { CarDTO } from "../../dtos/CardDTO";
+
+import Loading from "../../components/Loading";
+import FloatButton from "../../components/FloatButton";
+import Car from "../../components/Car";
 
 import Logo from "../../assets/logo.svg";
-import Car from "../../components/Car";
 
 import {
   CarList,
@@ -15,13 +26,37 @@ import {
   HomeHeaderContent,
   TotalCars,
 } from "./styles";
-import { CarDTO } from "../../dtos/CardDTO";
-import Loading from "../../components/Loading";
-import FloatButton from "../../components/FloatButton";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [cars, setCars] = useState<CarDTO[]>([] as CarDTO[]);
+
+  const positionY = useSharedValue(0);
+  const positionX = useSharedValue(0);
+
+  const buttonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { translateX: positionX.value },
+        { translateY: positionY.value },
+      ],
+    };
+  });
+
+  const onGestureEvent = useAnimatedGestureHandler({
+    onStart(_, context: any) {
+      context.positionX = positionX.value;
+      context.positionY = positionY.value;
+    },
+    onActive(event, context: any) {
+      positionX.value = context.positionX + event.translationX;
+      positionY.value = context.positionY + event.translationY;
+    },
+    onEnd() {
+      positionX.value = withSpring(0);
+      positionY.value = withSpring(0);
+    },
+  });
 
   async function loadCars() {
     try {
@@ -36,10 +71,6 @@ export default function Home() {
     setIsLoading(false);
   }
 
-  useEffect(() => {
-    loadCars();
-  }, []);
-
   const { navigate } = useNavigation();
 
   function handleCarPress(car: CarDTO) {
@@ -52,6 +83,14 @@ export default function Home() {
     navigate("my-cars");
   }
 
+  useEffect(() => {
+    loadCars();
+  }, []);
+
+  useEffect(() => {
+    BackHandler.addEventListener("hardwareBackPress", () => true);
+  }, []);
+
   return (
     <HomeContainer>
       <StatusBar
@@ -62,7 +101,7 @@ export default function Home() {
       <HomeHeader>
         <HomeHeaderContent>
           <Logo width={RFValue(108)} height={RFValue(12)} />
-          <TotalCars>Total de {cars.length} carros</TotalCars>
+          {!isLoading && <TotalCars>Total de {cars.length} carros</TotalCars>}
         </HomeHeaderContent>
       </HomeHeader>
       {isLoading ? (
@@ -76,7 +115,22 @@ export default function Home() {
           keyExtractor={(item) => String(item.id)}
         />
       )}
-      <FloatButton onPress={handleOpenMyCars} />
+      <PanGestureHandler onGestureEvent={onGestureEvent}>
+        <Animated.View
+          style={[
+            buttonStyle,
+            {
+              position: "absolute",
+              bottom: 16,
+              right: 22,
+            },
+          ]}
+        >
+          <FloatButton onPress={handleOpenMyCars} />
+        </Animated.View>
+      </PanGestureHandler>
     </HomeContainer>
   );
 }
+
+const styles = StyleSheet.create({});
