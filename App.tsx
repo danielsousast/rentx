@@ -12,6 +12,8 @@ import {
   Archivo_600SemiBold,
 } from "@expo-google-fonts/archivo";
 
+import { AppProvider } from "./src/context";
+
 import theme from "./src/global/theme";
 
 import AppRoutes from "./src/routes";
@@ -31,7 +33,9 @@ export default function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <AppRoutes />
+      <AppProvider>
+        <AppRoutes />
+      </AppProvider>
     </ThemeProvider>
   );
 }

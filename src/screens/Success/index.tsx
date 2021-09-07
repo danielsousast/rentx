@@ -1,6 +1,6 @@
 import React from "react";
 import { StatusBar, useWindowDimensions } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 import SmallButton from "../../components/SmallButton";
 import LogoSvg from "../../assets/logo_background_gray.svg";
@@ -8,13 +8,21 @@ import DoneSvg from "../../assets/done.svg";
 
 import { Container, Content, Title, Message, Footer } from "./styles";
 
-export default function SchedulingComplete() {
-  const { width } = useWindowDimensions();
+interface Params {
+  title: string;
+  message: string;
+  routeName: string;
+}
 
+export default function Success() {
+  const route = useRoute();
+  const { width } = useWindowDimensions();
   const { navigate } = useNavigation();
 
+  const { title, message, routeName } = route.params as Params;
+
   function handleOkPress() {
-    navigate("home");
+    navigate(routeName);
   }
 
   return (
@@ -28,11 +36,8 @@ export default function SchedulingComplete() {
 
       <Content>
         <DoneSvg width={80} height={80} />
-        <Title>Carro alugado!</Title>
-        <Message>
-          Agora você só precisa ir {"\n"} até a concessionária da RENTX{"\n"} e
-          pegar seu automóvel
-        </Message>
+        <Title>{title}</Title>
+        <Message>{message}</Message>
       </Content>
       <Footer>
         <SmallButton title="Ok" onPress={handleOkPress} />

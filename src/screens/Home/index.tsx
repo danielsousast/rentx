@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { StatusBar, StyleSheet, BackHandler } from "react-native";
 import { RFValue } from "react-native-responsive-fontsize";
-import { PanGestureHandler } from "react-native-gesture-handler";
+import {
+  BorderlessButton,
+  PanGestureHandler,
+} from "react-native-gesture-handler";
+import { Feather } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -26,8 +30,10 @@ import {
   HomeHeaderContent,
   TotalCars,
 } from "./styles";
+import { useTheme } from "styled-components";
 
 export default function Home() {
+  const { colors } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [cars, setCars] = useState<CarDTO[]>([] as CarDTO[]);
 
@@ -83,6 +89,10 @@ export default function Home() {
     navigate("my-cars");
   }
 
+  function handleOpenProfile() {
+    navigate("profile");
+  }
+
   useEffect(() => {
     loadCars();
   }, []);
@@ -101,7 +111,9 @@ export default function Home() {
       <HomeHeader>
         <HomeHeaderContent>
           <Logo width={RFValue(108)} height={RFValue(12)} />
-          {!isLoading && <TotalCars>Total de {cars.length} carros</TotalCars>}
+          <BorderlessButton onPress={handleOpenProfile}>
+            <Feather name="user" color={colors.main} size={24} />
+          </BorderlessButton>
         </HomeHeaderContent>
       </HomeHeader>
       {isLoading ? (

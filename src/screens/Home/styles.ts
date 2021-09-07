@@ -11,7 +11,7 @@ export const HomeContainer = styled.View`
 
 export const HomeHeader = styled.View`
   width: 100%;
-  height: 113px;
+  height: 123px;
   background-color: ${({ theme }) => theme.colors.header};
 
   justify-content: flex-end;

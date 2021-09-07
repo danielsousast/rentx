@@ -14,7 +14,6 @@ import {
   Type,
 } from "./styles";
 
-import GasolineSvg from "../../assets/gasoline.svg";
 import { getAccessoryIcon } from "../../utils/getAccessoryIcon";
 interface ComponentProps extends RectButtonProps {
   car: CarDTO;
@@ -30,8 +29,8 @@ export default function Car({ car, ...rest }: ComponentProps) {
 
         <About>
           <Rent>
-            <Period>{car.rent.period}</Period>
-            <Price>{`R$ ${car.rent.price}`}</Price>
+            <Period>{car.period}</Period>
+            <Price>{`R$ ${car.price}`}</Price>
           </Rent>
 
           <Type>

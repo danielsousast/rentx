@@ -15,9 +15,11 @@ import BrandSvg from "../../assets/brand.svg";
 import LogoSvg from "../../assets/logo.svg";
 
 import { Container } from "./styles";
+import { useAuth } from "../../context/auth";
 
 export default function Splash() {
   const { navigate } = useNavigation();
+  const { user } = useAuth();
   const splashAniamtion = useSharedValue(0);
 
   const brandStyle = useAnimatedStyle(() => {
@@ -53,7 +55,8 @@ export default function Splash() {
   });
 
   function startApp() {
-    navigate("home");
+    const route = user ? "home" : "signin";
+    navigate(route);
   }
 
   useEffect(() => {
