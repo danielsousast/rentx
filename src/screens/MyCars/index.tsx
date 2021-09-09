@@ -3,10 +3,10 @@ import { useNavigation } from "@react-navigation/native";
 import { StatusBar, Text } from "react-native";
 import { useTheme } from "styled-components";
 import { AntDesign } from "@expo/vector-icons";
+import { format, parseISO } from "date-fns";
 
-import BackButton from "../../components/BackButton";
-import { CarDTO } from "../../dtos/CardDTO";
 import api from "../../services/api";
+import ModelCar from "../../database/models/Car";
 
 import {
   Container,
@@ -24,15 +24,17 @@ import {
   CarFooterTitle,
   CarFooterDate,
 } from "./styles";
+
 import Car from "../../components/Car";
 import Loading from "../../components/Loading";
+import BackButton from "../../components/BackButton";
 
 export interface CarProps {
-  car: CarDTO;
+  car: ModelCar;
   user_id: string;
   id: string;
-  startDate: string;
-  endDate: string;
+  start_date: string;
+  end_date: string;
 }
 
 export default function MyCars() {
@@ -44,9 +46,17 @@ export default function MyCars() {
 
   async function loadCars() {
     try {
-      const response = await api.get("/schedules_byuser?user_id=1");
+      const response = await api.get("/rentals");
 
-      setCars(response.data);
+      const formattedResponse = response.data.map((item: CarProps) => {
+        return {
+          car: item.car,
+          start_date: format(parseISO(item.start_date), "dd/MM/yyyy"),
+          end_date: format(parseISO(item.end_date), "dd/MM/yyyy"),
+        };
+      });
+
+      setCars(formattedResponse);
     } catch (error) {
       console.log(error);
     } finally {
@@ -64,7 +74,7 @@ export default function MyCars() {
       <CarFooter>
         <CarFooterTitle>Período</CarFooterTitle>
         <CarFooterPeriod>
-          <CarFooterDate>{item.startDate}</CarFooterDate>
+          <CarFooterDate>{item.start_date}</CarFooterDate>
           <AntDesign
             name="arrowright"
             size={20}
@@ -73,7 +83,7 @@ export default function MyCars() {
               marginHorizontal: 10,
             }}
           />
-          <CarFooterDate>{item.endDate}</CarFooterDate>
+          <CarFooterDate>{item.end_date}</CarFooterDate>
         </CarFooterPeriod>
       </CarFooter>
     </CarWrapper>
@@ -102,7 +112,7 @@ export default function MyCars() {
           </Appointments>
           <CarsList
             data={cars}
-            keyExtractor={(item) => String(item.id)}
+            keyExtractor={(item) => String(item.car.id)}
             renderItem={renderCar}
           />
         </Content>

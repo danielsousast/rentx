@@ -1,18 +1,18 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AppRoutes from "./app.routes";
 import { useAuth } from "../context/auth";
 import AuthRoutes from "./auth.routes";
+import Loading from "../components/Loading";
 
 export default function Routes() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
-  console.log(user);
-
-  return (
+  return loading ? (
+    <Loading />
+  ) : (
     <NavigationContainer>
-      {user ? <AppRoutes /> : <AuthRoutes />}
+      {user.id ? <AppRoutes /> : <AuthRoutes />}
     </NavigationContainer>
   );
 }

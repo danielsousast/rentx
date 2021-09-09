@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { StatusBar, StyleSheet, BackHandler } from "react-native";
+import { StatusBar, StyleSheet, BackHandler, Alert } from "react-native";
 import { RFValue } from "react-native-responsive-fontsize";
+import { useNetInfo } from "@react-native-community/netinfo";
+import { synchronize } from "@nozbe/watermelondb/sync";
+import { database } from "../../database";
 import {
   BorderlessButton,
   PanGestureHandler,
@@ -14,8 +17,9 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
+import ModelCar from "../../database/models/Car";
+
 import api from "../../services/api";
-import { CarDTO } from "../../dtos/CardDTO";
 
 import Loading from "../../components/Loading";
 import FloatButton from "../../components/FloatButton";
@@ -35,7 +39,9 @@ import { useTheme } from "styled-components";
 export default function Home() {
   const { colors } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
-  const [cars, setCars] = useState<CarDTO[]>([] as CarDTO[]);
+  const [cars, setCars] = useState<ModelCar[]>([] as ModelCar[]);
+
+  const netInfo = useNetInfo();
 
   const positionY = useSharedValue(0);
   const positionX = useSharedValue(0);
@@ -66,20 +72,21 @@ export default function Home() {
 
   async function loadCars() {
     try {
-      const response = await api.get("/cars");
+      const carCollection = database.get<ModelCar>("cars");
+      const cars = await carCollection.query().fetch();
 
-      if (response) {
-        setCars(response.data);
+      if (cars) {
+        setCars(cars);
       }
     } catch (error) {
-      console.log(error);
+      console.log("LOAD CARS ERROR", error);
     }
     setIsLoading(false);
   }
 
   const { navigate } = useNavigation();
 
-  function handleCarPress(car: CarDTO) {
+  function handleCarPress(car: ModelCar) {
     navigate("car-details", {
       car,
     });
@@ -93,6 +100,27 @@ export default function Home() {
     navigate("profile");
   }
 
+  async function offlineSincronize() {
+    await synchronize({
+      database,
+      pullChanges: async ({ lastPulledAt }) => {
+        const { data } = await api.get(
+          `cars/sync/pull?lastPulledVersion=${lastPulledAt || 0}`
+        );
+        const { changes, latestVersion } = data;
+
+        return { changes, timestamp: latestVersion };
+      },
+      pushChanges: async ({ changes }) => {
+        const user = changes.users;
+
+        await api.post("/users/sync", user).catch((error) => {
+          console.log("PULL ERROR", error);
+        });
+      },
+    });
+  }
+
   useEffect(() => {
     loadCars();
   }, []);
@@ -100,6 +128,14 @@ export default function Home() {
   useEffect(() => {
     BackHandler.addEventListener("hardwareBackPress", () => true);
   }, []);
+
+  useEffect(() => {
+    if (netInfo.isConnected === true) {
+      offlineSincronize();
+    }
+
+    console.log(netInfo.isConnected);
+  }, [netInfo.isConnected]);
 
   return (
     <HomeContainer>

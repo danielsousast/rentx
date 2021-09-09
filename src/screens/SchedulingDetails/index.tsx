@@ -41,6 +41,7 @@ import {
   PriceQuota,
   PriceTotal,
 } from "./styles";
+import { useNetInfo } from "@react-native-community/netinfo";
 
 interface RouteParams {
   car: CarDTO;
@@ -63,33 +64,23 @@ export default function SchedulingDetails() {
   const { colors } = useTheme();
   const { navigate, goBack } = useNavigation();
 
+  const { isConnected } = useNetInfo();
+  const [carUpdated, setCarUpdated] = useState<CarDTO>({} as CarDTO);
+
   const { car, dates } = route.params as RouteParams;
 
   const total = Number(dates.length * car.price);
 
   async function handleConfirmPress() {
     setLoading(true);
-    const schedulesByCar = await api.get(`/schedules_bycars/${car.id}`);
 
-    const unavailable_dates = [
-      ...schedulesByCar.data.unavailable_dates,
-      ...dates,
-    ];
-
-    await api.post("schedules_byuser", {
-      user_id: 1,
-      car,
-      startDate: format(getPlataformDate(new Date(dates[0])), "dd/MM/yyyy"),
-      endDate: format(
-        getPlataformDate(new Date(dates[dates.length - 1])),
-        "dd/MM/yyyy"
-      ),
-    });
-
-    api
-      .put(`/schedules_bycars/${car.id}`, {
-        id: car.id,
-        unavailable_dates,
+    await api
+      .post("rentals", {
+        user_id: 1,
+        car_id: car.id,
+        total,
+        start_date: new Date(dates[0]),
+        end_date: new Date(dates[dates.length - 1]),
       })
       .then(() =>
         navigate("success", {
@@ -99,7 +90,8 @@ export default function SchedulingDetails() {
           routeName: "home",
         })
       )
-      .catch(() => {
+      .catch((error) => {
+        console.log(error);
         setLoading(false);
         Alert.alert("Não foi possível realizar o agendamento");
       });
@@ -115,13 +107,33 @@ export default function SchedulingDetails() {
     });
   }, []);
 
+  useEffect(() => {
+    async function fetchCarUpdated() {
+      const response = await api.get(`/cars/${car.id}`);
+
+      if (response.data) {
+        setCarUpdated(response.data);
+      }
+    }
+
+    if (isConnected === true) {
+      fetchCarUpdated();
+    }
+  }, [isConnected]);
+
   return (
     <Container>
       <Header>
         <BackButton onPress={goBack} />
       </Header>
       <CarImages>
-        <ImageSlider imagesUrl={car.photos} />
+        <ImageSlider
+          imagesUrl={
+            !!carUpdated.photos
+              ? carUpdated.photos
+              : [{ id: car.thumbnail, photo: car.thumbnail }]
+          }
+        />
       </CarImages>
 
       <Content>
@@ -136,15 +148,17 @@ export default function SchedulingDetails() {
             <Price>R$ {car.price}</Price>
           </Rent>
         </Details>
-        <Acessories>
-          {car.accessories.map((accessory) => (
-            <Acessory
-              key={accessory.type}
-              name={accessory.name}
-              icon={getAccessoryIcon(accessory.type)}
-            />
-          ))}
-        </Acessories>
+        {carUpdated.accessories && (
+          <Acessories>
+            {carUpdated.accessories.map((accessory) => (
+              <Acessory
+                key={accessory.type}
+                name={accessory.name}
+                icon={getAccessoryIcon(accessory.type)}
+              />
+            ))}
+          </Acessories>
+        )}
 
         <RentalPeriod>
           <CalendarIcon>

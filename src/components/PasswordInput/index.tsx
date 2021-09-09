@@ -59,6 +59,8 @@ export default function PasswordInput({
         onFocus={handleOnfocus}
         onBlur={handleOnBlur}
         isFocused={isFocused}
+        autoCorrect={false}
+        autoCapitalize="none"
       />
 
       <IconBoxRight isFocused={isFocused}>

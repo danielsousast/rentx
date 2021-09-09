@@ -92,3 +92,10 @@ export const Footer = styled.View`
   padding: 24px 24px ${getStatusBarHeight() + 24}px;
   background-color: ${({ theme }) => theme.colors.background_secondary};
 `;
+
+export const OfflineInfo = styled.Text`
+  text-align: center;
+  font-size: ${RFValue(10)}px;
+  font-family: ${({ theme }) => theme.fonts.primary_400};
+  color: ${({ theme }) => theme.colors.main};
+`;

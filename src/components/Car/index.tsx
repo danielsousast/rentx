@@ -14,9 +14,11 @@ import {
   Type,
 } from "./styles";
 
+import ModelCar from "../../database/models/Car";
+
 import { getAccessoryIcon } from "../../utils/getAccessoryIcon";
 interface ComponentProps extends RectButtonProps {
-  car: CarDTO;
+  car: ModelCar;
 }
 
 export default function Car({ car, ...rest }: ComponentProps) {

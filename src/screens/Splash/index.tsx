@@ -5,7 +5,6 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  Easing,
   interpolate,
   Extrapolate,
   runOnJS,
@@ -55,8 +54,11 @@ export default function Splash() {
   });
 
   function startApp() {
-    const route = user ? "home" : "signin";
-    navigate(route);
+    if (user.id) {
+      navigate("home");
+    } else {
+      navigate("signin");
+    }
   }
 
   useEffect(() => {
